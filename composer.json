@@ -1,0 +1,20 @@
+{
+    "name": "pcb/social-login",
+    "type": "library",
+    "version": "1.0",
+    "license": "MIT",
+    "keywords": ["social login", "symfony2 social login"],
+    "description": "Symfony2 Social Login by Sandip Patel",
+    "homepage": "http://www.phpcodebooster.com",
+    "authors": [
+        {
+            "name": "Sandip Patel",
+            "email": "sandip254@gmail.com",
+            "homepage": "http://www.phpcodebooster.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.10"
+    },
+    "minimum-stability": "dev"
+}
