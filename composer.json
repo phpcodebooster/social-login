@@ -3,6 +3,7 @@
     "type": "library",
     "version": "1.0",
     "license": "MIT",
+    "minimum-stability": "dev",
     "keywords": ["social login", "symfony2 social login"],
     "description": "Symfony2 Social Login by Sandip Patel",
     "homepage": "http://www.phpcodebooster.com",
@@ -16,5 +17,9 @@
     "require": {
         "php": ">=5.5"
     },
-    "minimum-stability": "dev"
+    "autoload": {
+        "psr-0" : {
+            "PCB\\SocialLogin" : "src"
+        }
+    }
 }
