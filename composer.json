@@ -20,8 +20,8 @@
     "autoload": {
         "psr-0" : {
             "PCB" : "",
-            "Facebook" : "PCB/SocialLoginBundle/Vendor",
-            "Abraham\\TwitterOAuth" : "PCB/SocialLoginBundle/Vendor"
+            "Abraham" : "PCB/SocialLoginBundle/Vendor",
+            "Facebook" : "PCB/SocialLoginBundle/Vendor"
         }
     }
 }

@@ -5,6 +5,7 @@ namespace PCB\SocialLoginBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 use Facebook\Facebook;
+use Abraham\TwitterOAuth\TwitterOAuth;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -48,7 +49,8 @@ class DefaultController extends Controller
 				 	return $this->redirect( $helper->getLoginUrl($this->getRequest()->getUri(), ['email', 'user_likes']) );				 	
 				 }
 				 else if ( $provider == 'twitter') {
-				 	
+				 	$connection = new TwitterOAuth($configs['api_key'], $configs['api_secret']);
+				 	exit;
 				 }
 			}		
 			else {
