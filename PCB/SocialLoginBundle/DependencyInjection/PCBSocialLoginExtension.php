@@ -23,6 +23,9 @@ class PCBSocialLoginExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $container->setParameter('facebook', $config['facebook']);
+        $container->setParameter('login_path', $config['login_path']);
+        $container->setParameter('model_alias', $config['model_alias']);
+        $container->setParameter('model_namespace', $config['model_namespace']);
         
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');

@@ -22,13 +22,16 @@ class Configuration implements ConfigurationInterface
 
 		$rootNode
             ->children()
+                ->scalarNode('login_path')->end()
+                ->scalarNode('model_alias')->end()
+                ->scalarNode('model_namespace')->end()
                 ->arrayNode('facebook')
                     ->children()
                         ->scalarNode('app_id')->end()
                         ->scalarNode('secret_id')->end()
                     ->end()
                 ->end() 
-            ->end()
+                ->end()
         ;
         
         return $treeBuilder;

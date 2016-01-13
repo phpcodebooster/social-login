@@ -13,7 +13,7 @@ class DefaultController extends Controller
     public function indexAction($provider)
     {
     	try {
-    		
+    		    		
     		// get previous url
     		$loginUrl = $this->getRequest()->headers->get('referer');
     		
@@ -45,8 +45,11 @@ class DefaultController extends Controller
 				 	  $em = $this->getDoctrine()->getManager();
 				 	  $qb = $em->createQueryBuilder();
 				 	  
+				 	  $model_alias = $this->container->getParameter('model_alias');
+				 	  $model_namespace = '\\'. $this->container->getParameter('model_namespace'). '\\User';
+				 	  
 				 	  $user = $qb->select('u')
-					 	  ->from('BlogBundle:User', 'u')
+					 	  ->from("{$model_alias}:User", 'u')
 					 	  ->where('u.authId = ?1 AND u.authProvider = ?2')
 					 	  ->setParameter(1, $fbUser['id'])
 					 	  ->setParameter(2, $provider)
@@ -57,7 +60,7 @@ class DefaultController extends Controller
 				 	  if (!$user) 
 				 	  {				 	  	
 				 	  	  // create new user if not in the system
-				 	  	  $user = new \BlogBundle\Models\Entity\User();
+				 	  	  $user = new $model_namespace();
 				 	  	  
 				 	  	  $user->addRole('ROLE_USER');
 				 	  	  $user->setAuthProvider($provider);
@@ -100,6 +103,6 @@ class DefaultController extends Controller
     		echo $e->getMessage();
     	}
 		
-        return $this->redirect($this->generateUrl('admin_login'));
+        return $this->redirect($this->generateUrl($this->container->getParameter('login_path')));
     }
 }
