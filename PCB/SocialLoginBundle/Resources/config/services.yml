@@ -1,4 +1,4 @@
-services:
-    pcb_social_login.provider:
-        class: PCB\SocialLoginBundle\Services\Provider
-        arguments: ['@service_container']
+#services:
+#    pcb_social_login.provider:
+#        class: PCB\SocialLoginBundle\Services\Provider
+#        arguments: ['@service_container']

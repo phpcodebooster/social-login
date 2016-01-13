@@ -1,12 +1,3 @@
-pcb_social_login_facebook:
+pcb_social_login_url:
     path:     /pcb/social-login/{provider}/
     defaults: { _controller: "PCBSocialLoginBundle:Default:index", provider: 'facebook' }
-
-pcb_social_login_twitter:
-    path:     /pcb/social-login/{provider}/
-    defaults: { _controller: "PCBSocialLoginBundle:Default:index", provider: 'twitter' }
-
-pcb_social_login_linkedin:
-    path:     /pcb/social-login/{provider}/
-    defaults: { _controller: "PCBSocialLoginBundle:Default:index", provider: 'linkedin' }
-    
