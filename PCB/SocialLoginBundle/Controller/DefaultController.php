@@ -5,6 +5,8 @@ namespace PCB\SocialLoginBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 use Facebook\Facebook;
+use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 class DefaultController extends Controller
 {
@@ -35,16 +37,60 @@ class DefaultController extends Controller
 				 // check to see if user
 				 // authenticated or send
 				 // him back to facebook				 
-				 if ( $accessToken !== null ) 
-				 {
-				 	  // user logged on
-				 	  $oResponse = $fb->get('/me', $accessToken);
-    				  print_r($oResponse->getGraphUser());
+				 if ( $accessToken !== null && !$this->getUser() ) 
+				 {				 	
+				 	  $fbResponse = $fb->get('/me?fields=id,email,first_name,last_name', $accessToken);
+				 	  $fbUser = $fbResponse->getGraphUser();
+				 	  
+				 	  $em = $this->getDoctrine()->getManager();
+				 	  $qb = $em->createQueryBuilder();
+				 	  
+				 	  $user = $qb->select('u')
+					 	  ->from('BlogBundle:User', 'u')
+					 	  ->where('u.authId = ?1 AND u.authProvider = ?2')
+					 	  ->setParameter(1, $fbUser['id'])
+					 	  ->setParameter(2, $provider)
+					 	  ->setMaxResults(1)
+					 	  ->getQuery()
+					 	  ->getOneOrNullResult();
+				 	  
+				 	  if (!$user) 
+				 	  {				 	  	
+				 	  	  // create new user if not in the system
+				 	  	  $user = new \BlogBundle\Models\Entity\User();
+				 	  	  
+				 	  	  $user->addRole('ROLE_USER');
+				 	  	  $user->setAuthProvider($provider);
+				 	  	  $user->setUsername($fbUser['id']);
+				 	  	  $user->setEmail($fbUser['email']);
+				 	  	  $user->setAuthId($fbUser['id']);
+				 	  	  $user->setLastName($fbUser['last_name']);
+				 	  	  $user->setFirstName($fbUser['first_name']);				 	  	  	
+				 	  	  
+				 	  	  // custom authentication
+				 	  	  $factory = $this->container->get('security.encoder_factory');
+				 	  	  $encoder = $factory->getEncoder($user);
+				 	  	  
+				 	  	  // get encoded password
+				 	  	  $password = $encoder->encodePassword(md5(uniqid()), $user->getSalt());
+				 	  	  $user->setPassword($password);
+				 	  	  
+				 	  	  $em = $this->getDoctrine()->getManager();
+				 	  	  $em->persist($user);
+				 	  	  $em->flush();
+				 	  }
+				 	  
+				 	  // authenticate user manually
+				 	  $token = new UsernamePasswordToken($user, null, "your_firewall_name", $user->getRoles());
+				 	  $this->get("security.context")->setToken($token); //now the user is logged in
+				 	  
+				 	  // now dispatch the login event
+				 	  $request = $this->get("request");
+				 	  $event = new InteractiveLoginEvent($request, $token);
+				 	  $this->get("event_dispatcher")->dispatch("security.interactive_login", $event);
 				 }
-				 else 
-				 {
-				 	  return $this->redirect( $helper->getLoginUrl($this->getRequest()->getUri(), ['email', 'user_likes']) );
-				 }
+
+				 return $this->redirect( $helper->getLoginUrl($this->getRequest()->getUri(), ['email', 'user_likes']) );
 			}		
 			else {
 				throw new \Exception("Provider not found check your config.yml file.");
@@ -54,6 +100,6 @@ class DefaultController extends Controller
     		echo $e->getMessage();
     	}
 		
-        return $this->render('PCBSocialLoginBundle:Default:index.html.twig');
+        return $this->redirect($this->generateUrl('admin_login'));
     }
 }
