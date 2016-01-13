@@ -5,7 +5,6 @@ namespace PCB\SocialLoginBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 use Facebook\Facebook;
-use Abraham\TwitterOAuth\TwitterOAuth;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -50,9 +49,6 @@ class DefaultController extends Controller
 				 }
 				 else if ( $provider == 'twitter') {
 				 	
-				 	$connection = new TwitterOAuth($configs['api_key'], $configs['api_secret']);
-				 	$content = $connection->get("account/verify_credentials");
-				 	die(var_dump($content));
 				 }
 			}		
 			else {
