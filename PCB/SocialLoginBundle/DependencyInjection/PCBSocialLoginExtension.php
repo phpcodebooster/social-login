@@ -22,6 +22,7 @@ class PCBSocialLoginExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        $container->setParameter('twitter', $config['twitter']);
         $container->setParameter('facebook', $config['facebook']);
         $container->setParameter('login_path', $config['login_path']);
         $container->setParameter('model_alias', $config['model_alias']);

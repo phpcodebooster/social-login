@@ -27,11 +27,17 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('model_namespace')->end()
                 ->arrayNode('facebook')
                     ->children()
-                        ->scalarNode('app_id')->end()
-                        ->scalarNode('secret_id')->end()
+                        ->scalarNode('api_key')->end()
+                        ->scalarNode('api_secret')->end()
+                    ->end()
+                ->end()
+                ->arrayNode('twitter')
+                    ->children()
+                        ->scalarNode('api_key')->end()
+                        ->scalarNode('api_secret')->end()
                     ->end()
                 ->end() 
-                ->end()
+            ->end()
         ;
         
         return $treeBuilder;
