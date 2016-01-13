@@ -21,7 +21,7 @@
         "psr-0" : {
             "PCB" : "",
             "Facebook" : "PCB/SocialLoginBundle/Vendor",
-            "Abraham\\TwitterOAuth" : "PCB/SocialLoginBundle/Vendor/TwitterOAuth"
+            "Abraham\\TwitterOAuth" : "PCB/SocialLoginBundle/Vendor"
         }
     }
 }
