@@ -5,13 +5,14 @@ namespace PCB\SocialLoginBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 use Facebook\Facebook;
-use Abraham\TwitterOAuth\TwitterOAuth;
+use TwitterOAuth\TwitterOAuth;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 class DefaultController extends Controller
 {
-    public function indexAction($provider)
+    public function indexAction(Request $request, $provider)
     {
     	try {
     		    		
@@ -49,7 +50,30 @@ class DefaultController extends Controller
 				 	return $this->redirect( $helper->getLoginUrl($this->getRequest()->getUri(), ['email', 'user_likes']) );				 	
 				 }
 				 else if ( $provider == 'twitter') {
-				 	$connection = new TwitterOAuth($configs['api_key'], $configs['api_secret']);
+				 	
+				 	$session = $request->getSession();
+				 	
+				 	if( !$session->get('oauth_token') )
+				 	{
+				 		$connection = new TwitterOAuth($configs['api_key'], $configs['api_secret']);
+				 		$request_token = $connection->getRequestToken($this->getRequest()->getUri());
+				 			
+				 		if ($connection->http_code == 200) {
+				 			$session->set('oauth_token', $request_token['oauth_token']);
+				 			$session->set('oauth_token_secret', $request_token['oauth_token_secret']);
+				 			return $this->redirect( $connection->getAuthorizeURL($request_token['oauth_token']) );
+				 		}
+				 	}
+				 	else if( $request->get('oauth_verifier') )
+				 	{
+				 		$connection = new TwitterOAuth($configs['api_key'], $configs['api_secret'], $session->get('oauth_token'), $session->get('oauth_token_secret'));
+				 		$access_token = $connection->getAccessToken($request->get('oauth_verifier'));
+				 		$session->set('access_token', $access_token);
+				 		$content = $connection->get('account/verify_credentials');
+				 		
+				 		var_dump($content);
+				 	}
+				 	
 				 	exit;
 				 }
 			}		
