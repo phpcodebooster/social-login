@@ -34,7 +34,18 @@ class DefaultController extends Controller
     			 	  else {
     			 	  	  $this->findUser($provider, $facebook->get_user($session));
     			 	  }    			 	  
-    			 }    			     			
+    			 }    		
+    			 elseif ( $provider == 'linkedin')
+    			 {
+    			 	  $linkedin = new \LinkedIn($configs['api_key'], $configs['api_secret'], $this->getRequest()->getUri());
+    			 	  
+    			 	  if (!$linkedin->is_authenticated()) {
+    			 	  	  return $this->redirect($linkedin->get_redirect_url());
+    			 	  }
+    			 	  else {
+    			 	  	  $this->findUser($provider, $linkedin->get_user($session));
+    			 	  }    			 	  
+    			 }
     		}
     	}
     	catch( \Exception $e ) {
