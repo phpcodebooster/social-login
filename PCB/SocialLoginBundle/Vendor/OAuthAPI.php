@@ -1,7 +1,19 @@
 <?php
 
+/**
+ * ---------------------------------
+ * PHP CODE BOOSTER
+ * ---------------------------------
+ *
+ * @Author: Sandip Patel
+ * @package pcb/social-login
+ * @version 5.0
+ * @copyright (c) 2016, Sandip Patel
+ **/
+
 abstract class OAuthAPI {
 	
+	protected $http_info = array();
 	protected $api_settings = array(
 		'api_key' 		=> '',
 		'api_secret'	=> '',
@@ -11,7 +23,9 @@ abstract class OAuthAPI {
 	abstract public function get_user(&$session);
 	abstract public function is_authenticated();
 	abstract public function get_redirect_url();
-	protected function call($url, $params = array()) {
+	abstract public function get_http_info();
+	
+	protected function call($url, $params = array(), $headers=array()) {
 		
 		try {
 				
@@ -19,10 +33,20 @@ abstract class OAuthAPI {
 			curl_setopt($ch, CURLOPT_URL, $url . http_build_query($params));
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 			curl_setopt($ch, CURLOPT_HEADER, FALSE);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/json"));
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+			
+			if ( !empty($headers) ) {
+				 curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+			}
+			else {
+				 curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/json"));
+			}
 				
-			$response = curl_exec($ch);
-			curl_close($ch);
+		    $response = curl_exec($ch);
+		    $this->http_info['error'] = curl_error($ch);
+		    $this->http_info['code']  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		    $this->http_info['info']  = array_merge($this->http_info, curl_getinfo($ch));
+		    curl_close ($ch);
 		}
 		catch( \System\Libraries\Core\PCBRouterException $e ) {
 			$e->display_error();
@@ -40,8 +64,11 @@ abstract class OAuthAPI {
 			curl_setopt($ch, CURLOPT_HEADER, FALSE);
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array("Accept: application/xml"));
 	
-			$response = curl_exec($ch);
-			curl_close($ch);
+		    $response = curl_exec($ch);
+		    $this->http_info['error'] = curl_error($ch);
+		    $this->http_info['code']  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		    $this->http_info['info']  = array_merge($this->http_info, curl_getinfo($ch));
+		    curl_close ($ch);
 		}
 		catch( \System\Libraries\Core\PCBRouterException $e ) {
 			$e->display_error();

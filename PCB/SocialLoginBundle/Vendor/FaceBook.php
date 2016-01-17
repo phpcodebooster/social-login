@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * ---------------------------------
+ * PHP CODE BOOSTER
+ * ---------------------------------
+ *
+ * @Author: Sandip Patel
+ * @package pcb/social-login
+ * @version 5.0
+ * @copyright (c) 2016, Sandip Patel
+ **/
+
 class FaceBook extends OAuthAPI {
 
 	public function __construct($api_key=null, $api_secret=null, $callback=null) {
@@ -34,6 +45,10 @@ class FaceBook extends OAuthAPI {
 	
 	public function is_authenticated() {
 		return isset($_REQUEST['code']);
+	}
+	
+	public function get_http_info() {
+		return $this->http_info;
 	}
 	
 	public function get_redirect_url() {		

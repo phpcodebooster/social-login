@@ -46,6 +46,45 @@ class DefaultController extends Controller
     			 	  	  $this->findUser($provider, $linkedin->get_user($session));
     			 	  }    			 	  
     			 }
+    			 elseif ( $provider == 'twitter')
+    			 {
+    			 	define('TWITTER_CONSUMER_KEY',    $configs['api_key']);
+    			 	define('TWITTER_CONSUMER_SECRET', $configs['api_secret']);
+    			 	define('TWITTER_OAUTH_CALLBACK',  $this->getRequest()->getUri());
+    			 		
+    			 	if (!$session->get('oauth_token')) {
+    			 		
+    			 		$connection = new \TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET);
+    			 		$request_token = $connection->getRequestToken(TWITTER_OAUTH_CALLBACK);
+    			 		
+    			 		$session->set('oauth_token', $request_token['oauth_token']);
+    			 		$session->set('oauth_token_secret', $request_token['oauth_token_secret']);
+    			 		
+    			 		switch ($connection->http_code) {
+    			 			case 200:
+    			 				return $this->redirect( $connection->getAuthorizeURL($request_token['oauth_token']) );
+    			 				break;
+    			 			default:
+    			 				throw new \Exception('Could not connect to Twitter. Refresh the page or try again later.');
+    			 				break;
+    			 		}
+    			 	}
+    			 	else {
+    			 		
+    			 		$connection = new \TwitterOAuth(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, $session->get('oauth_token'), $session->get('oauth_token_secret'));
+    			 		$access_token = $connection->getAccessToken($request->get('oauth_verifier'));
+    			 		
+    			 		$session->set('access_token', $access_token);
+    			 		$content = $connection->get('account/verify_credentials');
+    			 		
+    			 		$this->findUser($provider, array(
+							'id' 		 => (string)$content->id,
+							'first_name' => (string)$content->name,
+							'last_name'  => (string)$content->name,
+							'email' 	 => (string)$content->id. '@twitter.com'
+						));
+    			 	}
+    			 }
     		}
     	}
     	catch( \Exception $e ) {
