@@ -4,6 +4,7 @@ Symfony2 Social Login Bundle allow you to login via facebook functionality. Your
 Features include:
 
 - Login with facebook
+- Login with linkedin
 - other providers will be added later
 
 Follow the tutorial here to install this bundle [PCBSocialLoginBundle](http://www.phpcodebooster.com/post/12/symfony2-social-login-plugin/).
