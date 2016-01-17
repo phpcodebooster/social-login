@@ -4,8 +4,6 @@ namespace PCB\SocialLoginBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
-use Facebook\Facebook;
-use LinkedIn\LinkedIn;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -18,81 +16,26 @@ class DefaultController extends Controller
     		    		
     		// get previous url
 			$session = $request->getSession();				 					 	
-    		$loginUrl = $this->getRequest()->headers->get('referer');
-    		
-    		// make sure we find the configuration
-			if ( $this->container->hasParameter($provider)) 
-			{	
-				 // get current configuration for provider
-				 $configs = $this->container->getParameter($provider);
-				
-				 if ( $provider == 'facebook')
-				 {
-				 	// initialize the app
-				 	$fb = new Facebook([
-				 		'app_id' => $configs['api_key'],
-				 		'app_secret' => $configs['api_secret'],
-				 		'default_graph_version' => 'v2.5'
-				 	]);
-				 	
-				 	// login helper with redirect url
-				 	$helper = $fb->getRedirectLoginHelper();
-				 	$accessToken = $helper->getAccessToken();
-				 	
-				 	// check to see if user
-				 	// authenticated or send him back to facebook
-				 	if ( $accessToken !== null && !$this->getUser() )
-				 	{
-				 		 $fbResponse = $fb->get('/me?fields=id,email,first_name,last_name', $accessToken);
-				 		 $fbUser = $fbResponse->getGraphUser();
-				 		 $this->findUser($provider, $fbUser);
-				 	}
-				 	
-				 	return $this->redirect( $helper->getLoginUrl($this->getRequest()->getUri(), ['email', 'user_likes']) );				 	
-				 }
-				 else if ( $provider == 'linkedin') {
-				 	
-				 	$linkedin = new LinkedIn($configs['api_key'], $configs['api_secret'], $this->getRequest()->getUri());
-				 	
-				 	if (!$session->get('request_token', false)) 
-				 	{
-				 		$linkedin->getRequestToken();
-				 		$session->set('request_token', serialize($linkedin->request_token));
-				 		return $this->redirect($linkedin->generateAuthorizeUrl());
-				 	}
-				 	elseif ( $session->get('access_token', false) && $session->get('oauth_verifier', false) && $session->get('request_token', false) )
-				 	{
-        				$linkedin->oauth_verifier = $session->get('oauth_verifier');
-				 		$linkedin->request_token  = unserialize($session->get('request_token'));
-        				$linkedin->access_token   = unserialize($session->get('access_token'));
-				 	
-				 		$xml_response = $linkedin->getProfile("~:(id,first-name,last-name,email;secure=true)");
-				 		$this->findUser($provider, array(
-				 			'id' => $xml_response['id'],
-				 			'first_name' => $xml_response['first_name'],
-				 			'last_name' => $xml_response['last_name'],
-				 			'email' => $xml_response['email']
-				 		));
-				 	}
-				 	elseif ( $request->get('oauth_token', false) && $request->get('oauth_verifier', false) )
-				 	{
+    		$loginUrl = $this->getRequest()->headers->get('referer');    		
 
-				 		$linkedin->request_token  = unserialize($session->get('request_token'));
-				 		$linkedin->oauth_verifier = $request->get('oauth_verifier');				 		
-				 		$linkedin->getAccessToken($request->get('oauth_verifier'));
-				 		
-				 		$session->set('oauth_verifier', $request->get('oauth_verifier'));
-				 		$session->set('access_token', serialize($linkedin->access_token));	
-				 		
-				 		return $this->redirect($this->getRequest()->getUri());
-				 	}
-				 	
-				 	exit;
-				 }
-			}		
-			else {
-				 throw new \Exception("Provider not found check your config.yml file.");
-			}
+    		// make sure we find the configuration
+    		if ( $this->container->hasParameter($provider) && !$this->getUser() )
+    		{
+    			 // get current configuration for provider
+    			 $configs = $this->container->getParameter($provider);
+    			 
+    			 if ( $provider == 'facebook')
+    			 {
+    			 	  $facebook = new \FaceBook($configs['api_key'], $configs['api_secret'], $this->getRequest()->getUri());
+    			 	      			 	  
+    			 	  if (!$facebook->is_authenticated()) {
+    			 	  	  return $this->redirect($facebook->get_redirect_url());
+    			 	  }
+    			 	  else {
+    			 	  	  $this->findUser($provider, $facebook->get_user($session));
+    			 	  }    			 	  
+    			 }    			     			
+    		}
     	}
     	catch( \Exception $e ) {
     		die($e->getMessage());
@@ -101,7 +44,7 @@ class DefaultController extends Controller
         return $this->redirect($this->generateUrl($this->container->getParameter('login_path')));
     }
     
-    private function findUser($provider, $data) {
+    private function findUser($provider, $data=array()) {
     	
     	$em = $this->getDoctrine()->getManager();
     	$qb = $em->createQueryBuilder();
