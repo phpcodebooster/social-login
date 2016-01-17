@@ -37,6 +37,12 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('api_secret')->end()
                     ->end()
                 ->end() 
+                ->arrayNode('linkedin')
+                    ->children()
+                        ->scalarNode('api_key')->end()
+                        ->scalarNode('api_secret')->end()
+                    ->end()
+                ->end() 
             ->end()
         ;
         

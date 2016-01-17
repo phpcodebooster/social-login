@@ -5,6 +5,7 @@ namespace PCB\SocialLoginBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 use Facebook\Facebook;
+use Linkedin\LinkedinOAuth;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -49,10 +50,39 @@ class DefaultController extends Controller
 				 	
 				 	return $this->redirect( $helper->getLoginUrl($this->getRequest()->getUri(), ['email', 'user_likes']) );				 	
 				 }
-				 else if ( $provider == 'twitter') {
+				 else if ( $provider == 'linkedin') {
 				 	
+				 	
+				 	$linkedIn = new \Happyr\LinkedIn\LinkedIn($configs['api_key'], $configs['api_secret']);
+				 	if ( $linkedIn->isAuthenticated() ) 
+				 	{
+				 		$user = $linkedIn->get('v1/people/~:(firstName,lastName)');
+				 		var_dump($user);
+				 	} 
+				 	else {
+				 		return $this->redirect( $linkedIn->getLoginUrl() );
+				 	}
+				 	
+// 					$linkedinOAuth = new LinkedinOAuth(array(
+// 						'client_id'     => $configs['api_key'],
+// 						'client_secret' => $configs['api_secret'],
+// 						'redirect_uri'  => $this->getRequest()->getUri()
+// 					));
+					
+// 					if (!$request->get('code', false)) {
+						
+// 						// redirect to linkedin
+// 						$redirectURL = $linkedinOAuth->getRedirectURL();
+// 						return $this->redirect( $linkedinOAuth->getRedirectURL() );
+// 					}
+// 					elseif ($request->get('code', false) && $request->get('state', false)) {
+						
+// 						// get access_token and expires_in params
+// 						$linkedinOAuth->getAccessToken($request->get('code'));	
+// 						$user = $linkedinOAuth->getUser();
+// 						var_dump($user);
+// 				 	}
 
-				 				
 				 	exit;
 				 }
 			}		

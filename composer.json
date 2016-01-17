@@ -15,7 +15,11 @@
     ],
     "require": {
         "php": ">=5.5",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "php-http/client-implementation": "1.0",
+        "php-http/httplug": "v1.0.0-beta",
+        "php-http/message": "^0.2.1",
+        "php-http/discovery": "^0.4|^0.5|^0.6"        
     },
     "autoload": {
         "psr-0" : {
