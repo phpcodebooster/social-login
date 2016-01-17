@@ -5,7 +5,7 @@ namespace PCB\SocialLoginBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 use Facebook\Facebook;
-use Linkedin\LinkedinOAuth;
+use LinkedIn\LinkedIn;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -52,37 +52,41 @@ class DefaultController extends Controller
 				 }
 				 else if ( $provider == 'linkedin') {
 				 	
+				 	$linkedin = new LinkedIn($configs['api_key'], $configs['api_secret'], $this->getRequest()->getUri());
 				 	
-				 	$linkedIn = new \Happyr\LinkedIn\LinkedIn($configs['api_key'], $configs['api_secret']);
-				 	if ( $linkedIn->isAuthenticated() ) 
+				 	if (!$session->get('request_token', false)) 
 				 	{
-				 		$user = $linkedIn->get('v1/people/~:(firstName,lastName)');
-				 		var_dump($user);
-				 	} 
-				 	else {
-				 		return $this->redirect( $linkedIn->getLoginUrl() );
+				 		$linkedin->getRequestToken();
+				 		$session->set('request_token', serialize($linkedin->request_token));
+				 		return $this->redirect($linkedin->generateAuthorizeUrl());
+				 	}
+				 	elseif ( $session->get('access_token', false) && $session->get('oauth_verifier', false) && $session->get('request_token', false) )
+				 	{
+        				$linkedin->oauth_verifier = $session->get('oauth_verifier');
+				 		$linkedin->request_token  = unserialize($session->get('request_token'));
+        				$linkedin->access_token   = unserialize($session->get('access_token'));
+				 	
+				 		$xml_response = $linkedin->getProfile("~:(id,first-name,last-name,email;secure=true)");
+				 		$this->findUser($provider, array(
+				 			'id' => $xml_response['id'],
+				 			'first_name' => $xml_response['first_name'],
+				 			'last_name' => $xml_response['last_name'],
+				 			'email' => $xml_response['email']
+				 		));
+				 	}
+				 	elseif ( $request->get('oauth_token', false) && $request->get('oauth_verifier', false) )
+				 	{
+
+				 		$linkedin->request_token  = unserialize($session->get('request_token'));
+				 		$linkedin->oauth_verifier = $request->get('oauth_verifier');				 		
+				 		$linkedin->getAccessToken($request->get('oauth_verifier'));
+				 		
+				 		$session->set('oauth_verifier', $request->get('oauth_verifier'));
+				 		$session->set('access_token', serialize($linkedin->access_token));	
+				 		
+				 		return $this->redirect($this->getRequest()->getUri());
 				 	}
 				 	
-// 					$linkedinOAuth = new LinkedinOAuth(array(
-// 						'client_id'     => $configs['api_key'],
-// 						'client_secret' => $configs['api_secret'],
-// 						'redirect_uri'  => $this->getRequest()->getUri()
-// 					));
-					
-// 					if (!$request->get('code', false)) {
-						
-// 						// redirect to linkedin
-// 						$redirectURL = $linkedinOAuth->getRedirectURL();
-// 						return $this->redirect( $linkedinOAuth->getRedirectURL() );
-// 					}
-// 					elseif ($request->get('code', false) && $request->get('state', false)) {
-						
-// 						// get access_token and expires_in params
-// 						$linkedinOAuth->getAccessToken($request->get('code'));	
-// 						$user = $linkedinOAuth->getUser();
-// 						var_dump($user);
-// 				 	}
-
 				 	exit;
 				 }
 			}		
