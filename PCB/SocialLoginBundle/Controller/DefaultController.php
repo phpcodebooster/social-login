@@ -24,29 +24,7 @@ class DefaultController extends Controller
     			 // get current configuration for provider
     			 $configs = $this->container->getParameter($provider);
     			 
-    			 if ( $provider == 'facebook')
-    			 {
-    			 	  $facebook = new \FaceBook($configs['api_key'], $configs['api_secret'], $this->getRequest()->getUri());
-    			 	      			 	  
-    			 	  if (!$facebook->is_authenticated()) {
-    			 	  	  return $this->redirect($facebook->get_redirect_url());
-    			 	  }
-    			 	  else {
-    			 	  	  $this->findUser($provider, $facebook->get_user($session));
-    			 	  }    			 	  
-    			 }    		
-    			 elseif ( $provider == 'linkedin')
-    			 {
-    			 	  $linkedin = new \LinkedIn($configs['api_key'], $configs['api_secret'], $this->getRequest()->getUri());
-    			 	  
-    			 	  if (!$linkedin->is_authenticated()) {
-    			 	  	  return $this->redirect($linkedin->get_redirect_url());
-    			 	  }
-    			 	  else {
-    			 	  	  $this->findUser($provider, $linkedin->get_user($session));
-    			 	  }    			 	  
-    			 }
-    			 elseif ( $provider == 'twitter')
+    			 if ( $provider == 'twitter')
     			 {
     			 	define('TWITTER_CONSUMER_KEY',    $configs['api_key']);
     			 	define('TWITTER_CONSUMER_SECRET', $configs['api_secret']);
@@ -85,13 +63,71 @@ class DefaultController extends Controller
 						));
     			 	}
     			 }
+    			 elseif ( $provider == 'google')
+    			 {
+    			 	// include google library
+    			 	include dirname(__DIR__). '/Vendor/Google/autoload.php';
+    			 	
+					$client = new \Google_Client();
+					$client->addScope("email");
+					$client->addScope("profile");
+					$client->setClientId($configs['api_key']);
+					$client->setClientSecret($configs['api_secret']);
+					$client->setRedirectUri( $this->get_clean_url($this->getRequest()->getUri()) );
+    			 	
+					if ($request->get('code', false)) {
+						$client->authenticate($request->get('code'));						
+						$service = new \Google_Service_Oauth2($client);
+						$user = $service->userinfo->get(); //get user info
+						$this->findUser($provider, array(
+								'id' 		 => (string)$user->id,
+								'first_name' => (string)$user->givenName,
+								'last_name'  => (string)$user->familyName,
+								'email' 	 => (string)$user->email
+						));
+					}
+    			 	else {
+    			 		return $this->redirect($client->createAuthUrl());
+    			 	}
+    			 }
+    			 elseif ( $provider == 'facebook')
+    			 {
+    			 	$facebook = new \FaceBook($configs['api_key'], $configs['api_secret'], $this->getRequest()->getUri());
+    			 
+    			 	if (!$facebook->is_authenticated()) {
+    			 		return $this->redirect($facebook->get_redirect_url());
+    			 	}
+    			 	else {
+    			 		$this->findUser($provider, $facebook->get_user($session));
+    			 	}
+    			 }
+    			 elseif ( $provider == 'linkedin')
+    			 {
+    			 	$linkedin = new \LinkedIn($configs['api_key'], $configs['api_secret'], $this->getRequest()->getUri());
+    			 		
+    			 	if (!$linkedin->is_authenticated()) {
+    			 		return $this->redirect($linkedin->get_redirect_url());
+    			 	}
+    			 	else {
+    			 		$this->findUser($provider, $linkedin->get_user($session));
+    			 	}
+    			 }
     		}
     	}
     	catch( \Exception $e ) {
-    		die($e->getMessage());
+    		$this->get('session')->getFlashBag()->add('error', $e->getMessage());
     	}
 		
         return $this->redirect($this->generateUrl($this->container->getParameter('login_path')));
+    }
+    
+    private function get_clean_url($callback) {
+    
+    	if ( strpos($callback, "?") !== false ) {
+    		return substr($callback, 0, strpos($callback, "?"));
+    	}
+    
+    	return $callback;
     }
     
     private function findUser($provider, $data=array()) {
