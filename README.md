@@ -1,5 +1,5 @@
 # PCBSocialLoginBundle
-Symfony2 Social Login Bundle allow you to login via facebook functionality. Your user can log on to your site using their existing facebook account. 
+Symfony2 Social Login Bundle allows you to login via facebook functionality. Your user can log on to your site using their existing facebook account. 
 
 Features include:
 
